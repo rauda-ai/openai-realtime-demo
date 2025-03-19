@@ -14,6 +14,16 @@ RUN npm ci
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Build-time environment variables
+ARG WEBSOCKET_SERVER_URL=http://localhost:8081
+ARG NEXT_PUBLIC_WEBSOCKET_SERVER_URL=http://localhost:8081
+
+# Set env vars for build time
+ENV WEBSOCKET_SERVER_URL=${WEBSOCKET_SERVER_URL}
+ENV NEXT_PUBLIC_WEBSOCKET_SERVER_URL=${NEXT_PUBLIC_WEBSOCKET_SERVER_URL}
+
+# Build with variables
 RUN npm run build
 
 FROM base AS runner

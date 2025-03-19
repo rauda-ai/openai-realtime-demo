@@ -68,6 +68,10 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-webapp.outputs.tags }}
           labels: ${{ steps.meta-webapp.outputs.labels }}
+          # Pass build-time arguments for environment variables
+          build-args: |
+            WEBSOCKET_SERVER_URL=http://websocket-server:8081
+            NEXT_PUBLIC_WEBSOCKET_SERVER_URL=https://realtime.sandbox.rauda.ai
           # Use registry caching instead of GHA caching
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.WEBAPP_IMAGE_NAME }}:buildcache
           cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}/{1}:buildcache,mode=max', env.REGISTRY, env.WEBAPP_IMAGE_NAME) || '' }}
