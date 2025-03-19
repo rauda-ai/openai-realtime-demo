@@ -1,0 +1,22 @@
+:80 {
+    # WebSocket server endpoints (no auth)
+    @websocket {
+        path /call/* /logs/* /twiml /tools /public-url
+    }
+    
+    handle @websocket {
+        reverse_proxy websocket-server:8081
+    }
+
+    # Web application (with auth)
+    handle_path /* {
+        basicauth {
+            admin $2a$04$E5B82evgUf3FIXcEGKC7I.Ek4rquocMfpPpg5Xm1Cb4hjKz6/LyT2
+        }
+        reverse_proxy webapp:3000
+    }
+
+    log {
+        output stdout
+    }
+}

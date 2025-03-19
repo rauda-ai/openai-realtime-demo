@@ -1,0 +1,55 @@
+services:
+  websocket-server:
+    build: ./websocket-server
+    env_file: 
+      - ./.env
+    environment:
+      - PORT=8081
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/public-url"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  webapp:
+    build: ./webapp
+    env_file:
+      - ./.env
+    environment:
+      - WEBSOCKET_SERVER_URL=http://websocket-server:8081
+      - NEXT_PUBLIC_WEBSOCKET_SERVER_URL=${PUBLIC_URL:-http://localhost:8080}
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "8080:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - app-network
+    depends_on:
+      webapp:
+        condition: service_healthy
+      websocket-server:
+        condition: service_healthy
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:
