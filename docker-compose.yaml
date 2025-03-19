@@ -20,14 +20,34 @@ services:
     build:
       context: ./webapp
       args:
+        # URLs and connection details
         - WEBSOCKET_SERVER_URL=http://websocket-server:${WEBSOCKET_PORT:-8081}
         - NEXT_PUBLIC_WEBSOCKET_SERVER_URL=${PUBLIC_URL:-https://realtime.sandbox.rauda.ai}
+        
+        # Twilio credentials - from env file
+        - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-}
+        - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-}
+        - TWILIO_WEBHOOK_URL=${TWILIO_WEBHOOK_URL:-}
+        
+        # Feature flags
+        - ENABLE_TWILIO=${ENABLE_TWILIO:-true}
+        - NEXT_PUBLIC_ENABLE_TWILIO=${NEXT_PUBLIC_ENABLE_TWILIO:-true}
     env_file:
       - ./.env
     environment:
+      # Runtime environment variables
       - PORT=${WEBAPP_PORT:-3000}
       - NEXT_PRIVATE_WEBSOCKET_SERVER_URL=http://websocket-server:${WEBSOCKET_PORT:-8081}
       - NEXT_PUBLIC_WEBSOCKET_SERVER_URL=${PUBLIC_URL:-https://realtime.sandbox.rauda.ai}
+      
+      # Runtime Twilio configuration (optional override of build-time values)
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-}
+      - TWILIO_WEBHOOK_URL=${TWILIO_WEBHOOK_URL:-}
+      
+      # Feature flags runtime config
+      - ENABLE_TWILIO=${ENABLE_TWILIO:-true}
+      - NEXT_PUBLIC_ENABLE_TWILIO=${NEXT_PUBLIC_ENABLE_TWILIO:-true}
     restart: unless-stopped
     networks:
       - app-network

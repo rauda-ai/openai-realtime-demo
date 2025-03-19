@@ -1,13 +1,35 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  env: {
-    // Make environment variables available at build time
+  // Server-side only variables (not exposed to the browser)
+  serverRuntimeConfig: {
+    // API credentials (server-side only)
+    TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID || '',
+    TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN || '',
+    TWILIO_WEBHOOK_URL: process.env.TWILIO_WEBHOOK_URL || '',
+    
+    // Server connection URLs (not public)
     WEBSOCKET_SERVER_URL: process.env.WEBSOCKET_SERVER_URL || 'http://localhost:8081',
+    
+    // Feature flags (server-side)
+    ENABLE_TWILIO: process.env.ENABLE_TWILIO || 'true',
   },
-  // Expose environment variables to the browser 
+  
+  // Expose these variables to the browser
   publicRuntimeConfig: {
-    WEBSOCKET_SERVER_URL: process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL || 'http://localhost:8081',
+    // Public URLs
+    NEXT_PUBLIC_WEBSOCKET_SERVER_URL: process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL || 'http://localhost:8081',
+    
+    // Public feature flags
+    NEXT_PUBLIC_ENABLE_TWILIO: process.env.NEXT_PUBLIC_ENABLE_TWILIO || 'true',
   },
+  
+  // Make process.env variables available in the browser
+  // Can be accessed using process.env.VARIABLE_NAME
+  env: {
+    // Public environment variables for legacy components
+    NEXT_PUBLIC_WEBSOCKET_SERVER_URL: process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL || 'http://localhost:8081',
+    NEXT_PUBLIC_ENABLE_TWILIO: process.env.NEXT_PUBLIC_ENABLE_TWILIO || 'true',
+  }
 };
 
 export default nextConfig;

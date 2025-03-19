@@ -70,8 +70,18 @@ jobs:
           labels: ${{ steps.meta-webapp.outputs.labels }}
           # Pass build-time arguments for environment variables
           build-args: |
+            # URLs
             WEBSOCKET_SERVER_URL=http://websocket-server:8081
             NEXT_PUBLIC_WEBSOCKET_SERVER_URL=https://realtime.sandbox.rauda.ai
+            
+            # Credentials (placeholder values)
+            TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID || '' }}
+            TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN || '' }}
+            TWILIO_WEBHOOK_URL=${{ secrets.TWILIO_WEBHOOK_URL || '' }}
+            
+            # Feature flags
+            ENABLE_TWILIO=true
+            NEXT_PUBLIC_ENABLE_TWILIO=true
           # Use registry caching instead of GHA caching
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.WEBAPP_IMAGE_NAME }}:buildcache
           cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}/{1}:buildcache,mode=max', env.REGISTRY, env.WEBAPP_IMAGE_NAME) || '' }}
