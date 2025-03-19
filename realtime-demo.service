@@ -1,0 +1,20 @@
+[Unit]
+Description=OpenAI Realtime Demo Service
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=simple
+User=pablo
+Group=pablo
+WorkingDirectory=/home/pablo/Workspace/Rauda.ai/openai-realtime-demo
+ExecStartPre=-/usr/bin/docker-compose down
+ExecStart=/usr/bin/docker-compose up
+ExecStop=/usr/bin/docker-compose down
+Restart=always
+RestartSec=10
+TimeoutStartSec=300
+TimeoutStopSec=60
+
+[Install]
+WantedBy=multi-user.target
