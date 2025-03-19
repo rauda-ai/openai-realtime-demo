@@ -6,7 +6,7 @@ realtime.sandbox.rauda.ai {
     
     # WebSocket server endpoints (no auth)
     @websocket {
-        path /call /logs/* /twiml /tools /public-url
+        path /call /logs /twiml /tools /public-url
     }
     
     handle @websocket {
