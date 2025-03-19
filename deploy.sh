@@ -45,47 +45,173 @@ echo "Fetching latest deployment artifacts..."
 ARTIFACT_URL="https://api.github.com/repos/$OWNER/$REPO/actions/artifacts"
 ARTIFACT_JSON=$(curl -s "$ARTIFACT_URL")
 
+# Debug the response
+echo "Debugging API response..."
+echo "$ARTIFACT_JSON" | grep -q "message" && echo "API response contains a message/error"
+
+# Check for errors or empty responses
+if [ -z "$ARTIFACT_JSON" ]; then
+  echo "Error: Empty response from GitHub API"
+  exit 1
+fi
+
 if echo "$ARTIFACT_JSON" | grep -q "message.*API rate limit"; then
   echo "Warning: GitHub API rate limit reached. Using anonymous access may have stricter rate limits."
   echo "Consider setting GITHUB_TOKEN if you continue to experience issues."
   exit 1
 fi
 
-ARTIFACT_INFO=$(echo "$ARTIFACT_JSON" | jq '.artifacts | map(select(.name == "deployment-files")) | sort_by(.created_at) | reverse | .[0]')
-if [ "$ARTIFACT_INFO" = "null" ]; then
-  echo "Error: Could not find deployment-files artifact in repository $OWNER/$REPO"
-  echo "Please ensure GitHub Actions workflow has run successfully."
+if echo "$ARTIFACT_JSON" | grep -q "message.*Not Found"; then
+  echo "Error: Repository not found or you don't have access to it."
+  echo "Please check the repository name and your permissions."
+  echo "Repository: $OWNER/$REPO"
   exit 1
 fi
 
-ARTIFACT_ID=$(echo $ARTIFACT_INFO | jq -r '.id')
-
-# Download the artifact - for public repos, we can often download without a token
-echo "Downloading artifact $ARTIFACT_ID..."
-curl -s -L -o artifact.zip "https://nightly.link/$OWNER/$REPO/actions/artifacts/$ARTIFACT_ID.zip"
-
-# If nightly.link fails, suggest using a token
-if [ ! -s artifact.zip ]; then
-  echo "Warning: Could not download artifact using public access."
-  echo "For GitHub Actions artifacts, you may need to use a personal access token."
-  echo "Try: GITHUB_TOKEN=your_token ./deploy.sh"
+# Safer jq parsing with error checking
+if ! echo "$ARTIFACT_JSON" | jq -e '.artifacts' > /dev/null 2>&1; then
+  echo "Error: Could not parse artifacts from API response"
+  echo "Response may be invalid or repository might not have any artifacts."
   
-  # If GITHUB_TOKEN is available, try with authentication
-  if [ ! -z "$GITHUB_TOKEN" ]; then
-    echo "Attempting download with provided GITHUB_TOKEN..."
-    curl -s -L -H "Authorization: Bearer $GITHUB_TOKEN" \
-      -H "Accept: application/vnd.github.v3+json" \
-      "https://api.github.com/repos/$OWNER/$REPO/actions/artifacts/$ARTIFACT_ID/zip" \
-      -o artifact.zip
-  else
+  # Create a simple docker-compose file manually instead
+  echo "Creating a basic docker-compose.prod.yml manually..."
+  cat > docker-compose.prod.yml << EOF
+services:
+  websocket-server:
+    image: ghcr.io/$OWNER/$REPO-websocket-server:latest
+    environment:
+      - PORT=8081
+      - PUBLIC_URL=\${PUBLIC_URL:-https://realtime.sandbox.rauda.ai}
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  webapp:
+    image: ghcr.io/$OWNER/$REPO-webapp:latest
+    environment:
+      - WEBSOCKET_SERVER_URL=http://websocket-server:8081
+      - NEXT_PUBLIC_WEBSOCKET_SERVER_URL=\${PUBLIC_URL:-https://realtime.sandbox.rauda.ai}
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - app-network
+    depends_on:
+      - webapp
+      - websocket-server
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:
+EOF
+
+  # Skip artifact download
+  echo "Skipping artifact download and using default images."
+  echo "NOTE: You should run the GitHub workflow before deployment."
+  
+  # Check if Caddyfile exists
+  if [ ! -f Caddyfile ]; then
+    echo "Creating a basic Caddyfile..."
+    cat > Caddyfile << EOF
+realtime.sandbox.rauda.ai {
+    # TLS with automatic HTTPS
+    tls {
+        protocols tls1.2 tls1.3
+    }
+    
+    # WebSocket server endpoints (no auth)
+    @websocket {
+        path /call/* /logs/* /twiml /tools /public-url
+    }
+    
+    handle @websocket {
+        reverse_proxy websocket-server:8081
+    }
+
+    # Web application (with auth)
+    handle_path /* {
+        basicauth {
+            admin \$2a\$04\$E5B82evgUf3FIXcEGKC7I.Ek4rquocMfpPpg5Xm1Cb4hjKz6/LyT2
+        }
+        reverse_proxy webapp:3000
+    }
+
+    log {
+        output stdout
+    }
+}
+EOF
+  fi
+  
+  # Skip to the docker-compose section
+  echo "Continuing with deployment using default configuration..."
+  SKIP_ARTIFACT=true
+else
+  # Normal artifact handling
+  ARTIFACT_INFO=$(echo "$ARTIFACT_JSON" | jq -e '.artifacts | map(select(.name == "deployment-files")) | sort_by(.created_at) | reverse | .[0]' 2>/dev/null || echo "null")
+  if [ "$ARTIFACT_INFO" = "null" ]; then
+    echo "Error: Could not find deployment-files artifact in repository $OWNER/$REPO"
+    echo "Please ensure GitHub Actions workflow has run successfully."
     exit 1
   fi
+
+  ARTIFACT_ID=$(echo $ARTIFACT_INFO | jq -r '.id')
+  SKIP_ARTIFACT=false
 fi
 
-# Extract the artifact
-echo "Extracting deployment files..."
-unzip -o artifact.zip
-rm artifact.zip
+# Only download artifacts if we didn't skip earlier
+if [ "$SKIP_ARTIFACT" != "true" ]; then
+  # Download the artifact - for public repos, we can often download without a token
+  echo "Downloading artifact $ARTIFACT_ID..."
+  curl -s -L -o artifact.zip "https://nightly.link/$OWNER/$REPO/actions/artifacts/$ARTIFACT_ID.zip"
+
+  # If nightly.link fails, suggest using a token
+  if [ ! -s artifact.zip ]; then
+    echo "Warning: Could not download artifact using public access."
+    echo "For GitHub Actions artifacts, you may need to use a personal access token."
+    echo "Try: GITHUB_TOKEN=your_token ./deploy.sh"
+    
+    # If GITHUB_TOKEN is available, try with authentication
+    if [ ! -z "$GITHUB_TOKEN" ]; then
+      echo "Attempting download with provided GITHUB_TOKEN..."
+      curl -s -L -H "Authorization: Bearer $GITHUB_TOKEN" \
+        -H "Accept: application/vnd.github.v3+json" \
+        "https://api.github.com/repos/$OWNER/$REPO/actions/artifacts/$ARTIFACT_ID/zip" \
+        -o artifact.zip
+      
+      if [ ! -s artifact.zip ]; then
+        echo "Error: Failed to download artifact even with authentication."
+        echo "Using default configuration instead..."
+        SKIP_ARTIFACT=true
+      fi
+    else
+      echo "Using default configuration instead..."
+      SKIP_ARTIFACT=true
+    fi
+  fi
+
+  # Only extract if we have an artifact
+  if [ "$SKIP_ARTIFACT" != "true" ]; then
+    # Extract the artifact
+    echo "Extracting deployment files..."
+    unzip -o artifact.zip
+    rm artifact.zip
+  fi
+fi
 
 # Check if we need to update env file
 if [ ! -f .env ]; then
