@@ -99,7 +99,8 @@ export default function ChecklistAndConfig({
     };
 
     pollChecks();
-    const intervalId = setInterval(() => polling && pollChecks(), 1000);
+    // Use a much longer polling interval to reduce API load
+    const intervalId = setInterval(() => polling && pollChecks(), 10000); // Changed from 1000ms to 10000ms (10 seconds)
     return () => {
       polling = false;
       clearInterval(intervalId);

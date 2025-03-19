@@ -50,10 +50,10 @@ const SessionConfigurationPanel: React.FC<SessionConfigurationPanelProps> = ({
     });
   }, []);
 
-  // Custom hook to fetch backend tools every 3 seconds
+  // Custom hook to fetch backend tools every 15 seconds (reduced from 3 seconds)
   const backendTools = useBackendTools(
     websocketServerUrl ? `${websocketServerUrl}/tools` : "", 
-    3000
+    15000
   );
 
   // Track changes to determine if there are unsaved modifications
