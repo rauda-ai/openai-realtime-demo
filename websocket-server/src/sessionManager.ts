@@ -25,13 +25,6 @@ export function handleCallConnection(ws: WebSocket, openAIApiKey: string) {
   ws.on("close", () => {
     cleanupConnection(session.modelConn);
     cleanupConnection(session.twilioConn);
-    session.twilioConn = undefined;
-    session.modelConn = undefined;
-    session.streamSid = undefined;
-    session.lastAssistantItem = undefined;
-    session.responseStartTimestamp = undefined;
-    session.latestMediaTimestamp = undefined;
-    if (!session.frontendConn) session = {};
   });
 }
 
@@ -43,7 +36,6 @@ export function handleFrontendConnection(ws: WebSocket) {
   ws.on("close", () => {
     cleanupConnection(session.frontendConn);
     session.frontendConn = undefined;
-    if (!session.twilioConn && !session.modelConn) session = {};
   });
 }
 
@@ -242,7 +234,6 @@ function handleTruncation() {
 function closeModel() {
   cleanupConnection(session.modelConn);
   session.modelConn = undefined;
-  if (!session.twilioConn && !session.frontendConn) session = {};
 }
 
 function closeAllConnections() {
