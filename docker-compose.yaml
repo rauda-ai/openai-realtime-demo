@@ -4,13 +4,14 @@ services:
     env_file: 
       - ./.env
     environment:
-      - PORT=8081
-      - PUBLIC_URL=${PUBLIC_URL:-https://realtime.sandbox.rauda.ai}
+      - PORT=${WEBSOCKET_PORT:-8081}
+      - WEBSOCKET_HOST=0.0.0.0
+      - EXTERNAL_URL=${PUBLIC_URL:-https://realtime.sandbox.rauda.ai}
     restart: unless-stopped
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/public-url"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${WEBSOCKET_PORT:-8081}/public-url"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -20,13 +21,14 @@ services:
     env_file:
       - ./.env
     environment:
-      - WEBSOCKET_SERVER_URL=http://websocket-server:8081
+      - PORT=${WEBAPP_PORT:-3000}
+      - NEXT_PRIVATE_WEBSOCKET_SERVER_URL=http://websocket-server:${WEBSOCKET_PORT:-8081}
       - NEXT_PUBLIC_WEBSOCKET_SERVER_URL=${PUBLIC_URL:-https://realtime.sandbox.rauda.ai}
     restart: unless-stopped
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${WEBAPP_PORT:-3000}"]
       interval: 10s
       timeout: 5s
       retries: 5

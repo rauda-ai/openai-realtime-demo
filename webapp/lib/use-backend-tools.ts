@@ -5,13 +5,16 @@ export function useBackendTools(url: string, intervalMs: number) {
   const [tools, setTools] = useState<any[]>([]);
 
   useEffect(() => {
+    // Don't try to fetch if URL is empty
+    if (!url) return;
+    
     let isMounted = true;
 
     const fetchTools = () => {
       fetch(url)
         .then((res) => res.json())
         .then((data) => {
-          if (isMounted) setTools(data);
+          if (isMounted && Array.isArray(data)) setTools(data);
         })
         .catch((error) => {
           // On failure, we just let it retry after interval

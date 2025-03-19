@@ -10,7 +10,11 @@ import { Item } from "@/components/types";
 import handleRealtimeEvent from "@/lib/handle-realtime-event";
 import PhoneNumberChecklist from "@/components/phone-number-checklist";
 
-const CallInterface = () => {
+interface CallInterfaceProps {
+  websocketServerUrl?: string;
+}
+
+const CallInterface = ({ websocketServerUrl }: CallInterfaceProps) => {
   const [selectedPhoneNumber, setSelectedPhoneNumber] = useState("");
   const [allConfigsReady, setAllConfigsReady] = useState(false);
   const [items, setItems] = useState<Item[]>([]);
@@ -19,26 +23,30 @@ const CallInterface = () => {
 
   useEffect(() => {
     if (allConfigsReady && !ws) {
-      const newWs = new WebSocket("ws://localhost:8081/logs");
+      // Import dynamically to avoid SSR issues
+      import("@/lib/config").then(({ getWebSocketURL }) => {
+        const wsUrl = getWebSocketURL();
+        const newWs = new WebSocket(`${wsUrl}/logs`);
 
-      newWs.onopen = () => {
-        console.log("Connected to logs websocket");
-        setCallStatus("connected");
-      };
+        newWs.onopen = () => {
+          console.log("Connected to logs websocket");
+          setCallStatus("connected");
+        };
 
-      newWs.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log("Received logs event:", data);
-        handleRealtimeEvent(data, setItems);
-      };
+        newWs.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          console.log("Received logs event:", data);
+          handleRealtimeEvent(data, setItems);
+        };
 
-      newWs.onclose = () => {
-        console.log("Logs websocket disconnected");
-        setWs(null);
-        setCallStatus("disconnected");
-      };
+        newWs.onclose = () => {
+          console.log("Logs websocket disconnected");
+          setWs(null);
+          setCallStatus("disconnected");
+        };
 
-      setWs(newWs);
+        setWs(newWs);
+      });
     }
   }, [allConfigsReady, ws]);
 

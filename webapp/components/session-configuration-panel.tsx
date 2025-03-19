@@ -40,8 +40,21 @@ const SessionConfigurationPanel: React.FC<SessionConfigurationPanelProps> = ({
   >("idle");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
+  // State for the WebSocket server URL
+  const [websocketServerUrl, setWebsocketServerUrl] = useState("");
+
+  // Load WebSocket server URL on component mount
+  useEffect(() => {
+    import("@/lib/config").then(({ WEBSOCKET_SERVER_URL }) => {
+      setWebsocketServerUrl(WEBSOCKET_SERVER_URL);
+    });
+  }, []);
+
   // Custom hook to fetch backend tools every 3 seconds
-  const backendTools = useBackendTools("http://localhost:8081/tools", 3000);
+  const backendTools = useBackendTools(
+    websocketServerUrl ? `${websocketServerUrl}/tools` : "", 
+    3000
+  );
 
   // Track changes to determine if there are unsaved modifications
   useEffect(() => {
