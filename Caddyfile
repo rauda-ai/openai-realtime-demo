@@ -1,4 +1,9 @@
-:80 {
+realtime.sandbox.rauda.ai {
+    # TLS with automatic HTTPS
+    tls {
+        protocols tls1.2 tls1.3
+    }
+    
     # WebSocket server endpoints (no auth)
     @websocket {
         path /call/* /logs/* /twiml /tools /public-url

@@ -5,6 +5,7 @@ services:
       - ./.env
     environment:
       - PORT=8081
+      - PUBLIC_URL=${PUBLIC_URL:-https://realtime.sandbox.rauda.ai}
     restart: unless-stopped
     networks:
       - app-network
@@ -20,7 +21,7 @@ services:
       - ./.env
     environment:
       - WEBSOCKET_SERVER_URL=http://websocket-server:8081
-      - NEXT_PUBLIC_WEBSOCKET_SERVER_URL=${PUBLIC_URL:-http://localhost:8080}
+      - NEXT_PUBLIC_WEBSOCKET_SERVER_URL=${PUBLIC_URL:-https://realtime.sandbox.rauda.ai}
     restart: unless-stopped
     networks:
       - app-network
@@ -33,7 +34,8 @@ services:
   caddy:
     image: caddy:2
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
