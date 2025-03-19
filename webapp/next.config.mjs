@@ -7,8 +7,9 @@ const nextConfig = {
     TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN || '',
     TWILIO_WEBHOOK_URL: process.env.TWILIO_WEBHOOK_URL || '',
     
-    // Server connection URLs (not public)
-    WEBSOCKET_SERVER_URL: process.env.WEBSOCKET_SERVER_URL || 'http://localhost:8081',
+    // Server connection URLs (not public) - for internal service communication
+    // In Docker, this should be the internal service name
+    WEBSOCKET_SERVER_URL: process.env.WEBSOCKET_SERVER_URL || 'http://websocket-server:8081',
     
     // Feature flags (server-side)
     ENABLE_TWILIO: process.env.ENABLE_TWILIO || 'true',
@@ -16,7 +17,8 @@ const nextConfig = {
   
   // Expose these variables to the browser
   publicRuntimeConfig: {
-    // Public URLs
+    // Public URLs - for browser to server communication
+    // This should be the public-facing URL that browsers can access
     NEXT_PUBLIC_WEBSOCKET_SERVER_URL: process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL || 'http://localhost:8081',
     
     // Public feature flags

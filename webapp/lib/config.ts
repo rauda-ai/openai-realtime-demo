@@ -39,18 +39,35 @@ const getConfigValue = (
   );
 };
 
-// === Public URLs (available on client-side) === 
-export const WEBSOCKET_SERVER_URL = getConfigValue(
+// === URLs (both server and client) === 
+
+// Internal server-to-server URL (not for browser use)
+// This is for server API calls to the WebSocket server 
+export const INTERNAL_WEBSOCKET_SERVER_URL = getConfigValue(
   'WEBSOCKET_SERVER_URL',
+  undefined, 
+  'http://localhost:8081'
+);
+
+// Public URL for browsers to connect to
+// This is what the React client code will use for WebSocket connections
+export const PUBLIC_WEBSOCKET_SERVER_URL = getConfigValue(
+  'NEXT_PUBLIC_WEBSOCKET_SERVER_URL',
   'NEXT_PUBLIC_WEBSOCKET_SERVER_URL', 
   'http://localhost:8081'
 );
 
-// For WebSocket connections, use wss:// protocol for https and ws:// for http
+// For server-side code to use - defaults to internal URL
+export const WEBSOCKET_SERVER_URL = typeof window === 'undefined' 
+  ? INTERNAL_WEBSOCKET_SERVER_URL 
+  : PUBLIC_WEBSOCKET_SERVER_URL;
+
+// For WebSocket connections from the browser
+// Always uses the PUBLIC URL and converts to WebSocket protocol
 export const getWebSocketURL = () => {
-  if (!WEBSOCKET_SERVER_URL) return 'ws://localhost:8081';
+  const url = PUBLIC_WEBSOCKET_SERVER_URL || 'http://localhost:8081';
   // Replace http:// with ws:// and https:// with wss://
-  return WEBSOCKET_SERVER_URL.replace(/^http/, 'ws');
+  return url.replace(/^http/, 'ws');
 };
 
 // === Server-only credentials ===

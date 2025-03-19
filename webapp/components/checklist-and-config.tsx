@@ -77,9 +77,9 @@ export default function ChecklistAndConfig({
         // 3. Check local server & public URL
         let foundPublicUrl = "";
         try {
-          // Import config dynamically
-          const { WEBSOCKET_SERVER_URL } = await import("@/lib/config");
-          const resLocal = await fetch(`${WEBSOCKET_SERVER_URL}/public-url`);
+          // Import config dynamically - use the public URL since this is client-side
+          const { PUBLIC_WEBSOCKET_SERVER_URL } = await import("@/lib/config");
+          const resLocal = await fetch(`${PUBLIC_WEBSOCKET_SERVER_URL}/public-url`);
           if (resLocal.ok) {
             const pubData = await resLocal.json();
             foundPublicUrl = pubData?.publicUrl || "";
@@ -88,7 +88,8 @@ export default function ChecklistAndConfig({
           } else {
             throw new Error("Local server not responding");
           }
-        } catch {
+        } catch (error) {
+          console.error("Failed to connect to WebSocket server:", error);
           setLocalServerUp(false);
           setPublicUrl("");
         }

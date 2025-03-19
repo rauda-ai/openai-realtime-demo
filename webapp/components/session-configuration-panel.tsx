@@ -45,8 +45,8 @@ const SessionConfigurationPanel: React.FC<SessionConfigurationPanelProps> = ({
 
   // Load WebSocket server URL on component mount
   useEffect(() => {
-    import("@/lib/config").then(({ WEBSOCKET_SERVER_URL }) => {
-      setWebsocketServerUrl(WEBSOCKET_SERVER_URL);
+    import("@/lib/config").then(({ PUBLIC_WEBSOCKET_SERVER_URL }) => {
+      setWebsocketServerUrl(PUBLIC_WEBSOCKET_SERVER_URL);
     });
   }, []);
 

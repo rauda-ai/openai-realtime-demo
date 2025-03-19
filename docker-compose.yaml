@@ -37,7 +37,9 @@ services:
     environment:
       # Runtime environment variables
       - PORT=${WEBAPP_PORT:-3000}
-      - NEXT_PRIVATE_WEBSOCKET_SERVER_URL=http://websocket-server:${WEBSOCKET_PORT:-8081}
+      # Internal URL for server-to-server communication via Docker network
+      - WEBSOCKET_SERVER_URL=http://websocket-server:${WEBSOCKET_PORT:-8081}
+      # Public URL for browser-to-server WebSocket connections
       - NEXT_PUBLIC_WEBSOCKET_SERVER_URL=${PUBLIC_URL:-https://realtime.sandbox.rauda.ai}
       
       # Runtime Twilio configuration (optional override of build-time values)
