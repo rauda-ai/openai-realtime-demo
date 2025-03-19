@@ -19,7 +19,7 @@ const nextConfig = {
   publicRuntimeConfig: {
     // Public URLs - for browser to server communication
     // This should be the public-facing URL that browsers can access
-    NEXT_PUBLIC_WEBSOCKET_SERVER_URL: process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL || 'http://localhost:8081',
+    NEXT_PUBLIC_WEBSOCKET_SERVER_URL: process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL || 'https://realtime.sandbox.rauda.ai',
     
     // Public feature flags
     NEXT_PUBLIC_ENABLE_TWILIO: process.env.NEXT_PUBLIC_ENABLE_TWILIO || 'true',
@@ -29,7 +29,7 @@ const nextConfig = {
   // Can be accessed using process.env.VARIABLE_NAME
   env: {
     // Public environment variables for legacy components
-    NEXT_PUBLIC_WEBSOCKET_SERVER_URL: process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL || 'http://localhost:8081',
+    NEXT_PUBLIC_WEBSOCKET_SERVER_URL: process.env.NEXT_PUBLIC_WEBSOCKET_SERVER_URL || 'https://realtime.sandbox.rauda.ai',
     NEXT_PUBLIC_ENABLE_TWILIO: process.env.NEXT_PUBLIC_ENABLE_TWILIO || 'true',
   }
 };

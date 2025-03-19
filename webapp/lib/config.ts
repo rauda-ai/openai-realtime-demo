@@ -54,7 +54,7 @@ export const INTERNAL_WEBSOCKET_SERVER_URL = getConfigValue(
 export const PUBLIC_WEBSOCKET_SERVER_URL = getConfigValue(
   'NEXT_PUBLIC_WEBSOCKET_SERVER_URL',
   'NEXT_PUBLIC_WEBSOCKET_SERVER_URL', 
-  'http://localhost:8081'
+  'https://realtime.sandbox.rauda.ai'
 );
 
 // For server-side code to use - defaults to internal URL
@@ -65,7 +65,7 @@ export const WEBSOCKET_SERVER_URL = typeof window === 'undefined'
 // For WebSocket connections from the browser
 // Always uses the PUBLIC URL and converts to WebSocket protocol
 export const getWebSocketURL = () => {
-  const url = PUBLIC_WEBSOCKET_SERVER_URL || 'http://localhost:8081';
+  const url = PUBLIC_WEBSOCKET_SERVER_URL || 'https://realtime.sandbox.rauda.ai';
   // Replace http:// with ws:// and https:// with wss://
   return url.replace(/^http/, 'ws');
 };
