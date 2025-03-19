@@ -15,8 +15,8 @@ echo "Logging in to GitHub Container Registry..."
 echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
 
 echo "Pulling the latest docker-compose.prod.yml from GitHub..."
-REPO=$(basename $(dirname $(pwd)))
-OWNER=$(basename $(dirname $(dirname $(pwd))))
+REPO="openai-realtime-demo"
+OWNER="rauda-ai"
 ARTIFACT_URL="https://api.github.com/repos/$OWNER/$REPO/actions/artifacts"
 
 # Get the latest artifact info
