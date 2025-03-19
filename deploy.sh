@@ -50,11 +50,11 @@ fi
 
 # Stop any running containers
 echo "Stopping any running containers..."
-docker-compose down || true
+docker compose down || true
 
 # Start with the new configuration
 echo "Starting services with the new configuration..."
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml up -d
 
 echo "Deployment completed successfully!"
 echo "Your application should be running at https://realtime.sandbox.rauda.ai"
